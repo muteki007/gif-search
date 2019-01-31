@@ -1,7 +1,8 @@
 .App {
   text-align: center;
-  display: flex;
-  flex-direction: row;
+  position: relative;
+  display: block;
+  flex-direction: column;
   align-items: center;
   font-size:14px;
   font-family: avenir;
@@ -27,6 +28,13 @@
   color: #61dafb;
 }
 
+footer {
+    display: block;
+    position: relative;
+    top: 60px;
+    left: 0;
+
+}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

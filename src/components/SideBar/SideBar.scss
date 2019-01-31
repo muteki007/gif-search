@@ -1,0 +1,12 @@
+.sidebar {
+    flex:0 1 20%;
+    min-width: 200px;
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    width: 240px;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+}

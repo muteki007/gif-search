@@ -29,7 +29,7 @@ class TopBar extends Component {
 }
 
 TopBar.propTypes = {
-    data: PropTypes.object
+    data: PropTypes.string
 };
 //             <SVG src={fakelogo} className='logo'></SVG>   <img src={fakelogo} alt='logo' />
 

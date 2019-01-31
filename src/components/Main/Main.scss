@@ -1,0 +1,14 @@
+
+.main {
+    position: relative;
+    display: block;
+    top: 50px;
+    width: auto;
+    //height: 100%;
+    clear: both;
+    overflow: visible;
+    >div {
+        display: flex;
+        flex-direction: row;
+    }
+}
