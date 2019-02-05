@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
 import { BehaviorSubject, combineLatest, timer, concat } from 'rxjs';
-import { flatMap, map, debounce, filter , tap} from 'rxjs/operators';
+import { flatMap, map, debounce, filter , tap, distinctUntilChanged, switchMap} from 'rxjs/operators';
 
 import Main from './components/Main/Main';
 import TopBar from './components/TopBar/TopBar';
@@ -15,26 +15,24 @@ import {getGifs} from './common/httpObservable';
 const App = ({
     keyword,
     filter,
-    images = [],
+    imageData,
+    // images = [],
+    // pagination = {},
     onChangeQuery,
     onSelectKeyword}) => {
+    //const {data:images=[], pagination={}} = imageData;
+
     return (
       <div className="App">
 
-        <TopBar data={keyword}/>
+        <TopBar keyword={keyword} onSelectKeyword={onSelectKeyword}/>
         <p>keyword = {keyword} - filter = {filter}</p>
 
-        <ul>
-          {images.map(image => (
-            <li key={image.id}>
-              <a href={image.url}>
-                {image.images && image.downsized_small || image.title}
-              </a>
-            </li>
-          ))}
-        </ul>
+
         <Router>
-            <Route path='/' component={Main} />
+            <Route path='/'
+             render= {(routeProps) => <Main {...routeProps} imageData={imageData} onChangeQuery={onChangeQuery}/>}
+            />
         </Router>
         <footer>
             © shihoko ui 2019
@@ -59,31 +57,44 @@ const App = ({
 //     );
 //   }
 // }
-const query$ = new BehaviorSubject("cats");
-const filter$ = new BehaviorSubject();
+const query$ = new BehaviorSubject('');
+const filter$ = new BehaviorSubject('');
+
+
 
 //input value changed through user typing.  be sure to retrieve a value and value every so often
 const queryForFetch$ = query$.pipe(
+    tap(console.log("query$", ".......")),
   debounce(() => timer(1000)),
-  filter(query => query !== ''),
+  distinctUntilChanged(),
+  switchMap(keyword => keyword),
+  filter(query => query !== '')
 );
 
 //every time filter values (predefined) or keyword was retrieved, fetch operation get executed
 const fetch$ = combineLatest(filter$, queryForFetch$)
     .pipe(
-        tap(console.warn),
+        tap(console.log("filter$ queryForFetch$", ".......")),
         flatMap(([filter, query]) => {
-          return loadImages(filter, query);
+          return loadImages(filter, query||'cats');
         })
   );
 
 //initial items to be emitted
-const initialFetch$ = loadImages('', "dogs");
+const initialFetch$ = loadImages('', 'dogs');
 
 //to be subscribed by container component
-const images$ = concat(initialFetch$, fetch$);
+const imageData$ = concat(initialFetch$, fetch$);
+// const images$ = imageData$.pipe(
+//         map(result=>result.data)
+//     );
+//     //to be subscribed by container component
+// const pagination$ = imageData$
+//     .pipe(
+//         map(result=>result.pagination)
+//     );
 
-// images$
+// imageData$
 //     .pipe(
 //         tap(() => console.log('HTTP request executed')),
 //         map(res => Object.values(res['payload']))
@@ -96,13 +107,12 @@ const images$ = concat(initialFetch$, fetch$);
 // loadImages({"q": "dogs"}).subscribe(data => {
 //     images = data;
 // });
-function loadImages(f,q) {
-    const query = q ? {q: q} : (f ? {q: f} : null);
+function loadImages(f,q='') {
+    const query = q ? {q: q} : (f ? {q: f} : {});
     return getGifs(query)
         .pipe(
             map(result => {
-                console.log("result init--", result);
-                return result.data
+                return result;
             })
         );
 }
@@ -111,23 +121,18 @@ export default componentWithStream(
     combineLatest(
       query$,
       filter$,
-      images$,
-      (keyword, filter, images) => ({
+      imageData$,
+      // pagination$,
+      (keyword, filter, imageData) => ({
         keyword,
         filter,
-        images,
+        imageData
+        // pagination
       }),
     ),
     {
       onSelectKeyword: keyword => query$.next(keyword),
       onChangeQuery: value => filter$.next(value),
-    },
-    {
-      keyword: 'cat sleeping',
-      filter: '',
-      images: [],
-    },
-
-    images$
+    }
 
 )(App);

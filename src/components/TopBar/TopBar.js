@@ -13,11 +13,12 @@ class TopBar extends Component {
     }
 
     render() {
+        console.log(this.props);
         return (<div className='topbar'>
                 <SVG src={fakelogo} className='logo'></SVG>
                 <div className='search'>
                     <SVG src={searchIcon} >search</SVG>
-                    <input type="text" />
+                    <input type="text" onChange={(e)=>this.props.onSelectKeyword(e.target.value)}/>
                 </div>
                 <div className='favorites'>
                     favorite
@@ -29,7 +30,8 @@ class TopBar extends Component {
 }
 
 TopBar.propTypes = {
-    data: PropTypes.string
+    keyword: PropTypes.string,
+    onSelectKeyword: PropTypes.function
 };
 //             <SVG src={fakelogo} className='logo'></SVG>   <img src={fakelogo} alt='logo' />
 

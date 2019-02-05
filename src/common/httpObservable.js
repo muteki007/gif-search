@@ -23,11 +23,8 @@ const httpObservable = (reqArgs) => {
                     }
                 })
                 .then(body => {
-
                     observer.next(body);
-
                     observer.complete();
-
                 })
                 .catch(err => {
 
@@ -67,15 +64,10 @@ export const getGifs = (reqArgs) => {
         gClient.search('gifs', options)
           .then((response) => {
               return response;
-            // response.data.forEach((gifObject) => {
-            //   console.log(gifObject)
           })
           .then(body => {
-
                 observer.next(body);
-
                 observer.complete();
-
             })
           .catch((err) => {
               observer.error(err);
