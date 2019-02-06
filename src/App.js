@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
+import {Observable} from 'rxjs';
 import { BehaviorSubject, combineLatest, timer, concat } from 'rxjs';
-import { flatMap, map, debounce, filter , tap, distinctUntilChanged, switchMap} from 'rxjs/operators';
+import { flatMap, map, debounceTime, filter , tap, distinctUntilChanged, switchMap, of} from 'rxjs/operators';
 
 import Main from './components/Main/Main';
 import TopBar from './components/TopBar/TopBar';
@@ -57,26 +58,35 @@ const App = ({
 //     );
 //   }
 // }
-const query$ = new BehaviorSubject('');
-const filter$ = new BehaviorSubject('');
+const keyword$ = new BehaviorSubject('x');
+const filter$ = new BehaviorSubject('test');
 
 
 
 //input value changed through user typing.  be sure to retrieve a value and value every so often
-const queryForFetch$ = query$.pipe(
-    tap(console.log("query$", ".......")),
-  debounce(() => timer(1000)),
-  distinctUntilChanged(),
-  switchMap(keyword => keyword),
-  filter(query => query !== '')
+const queryForFetch$ = keyword$.pipe(
+    map(val => val),
+    debounceTime(1500),
+    distinctUntilChanged(),
+    filter(keyword => keyword !== '')
+
+
 );
 
+// .pipe(
+//                 map(event => event.target.value),
+//                 debounceTime(400),
+//                 distinctUntilChanged(),
+//                 switchMap(search => this.loadLessons(search))
+//             );
 //every time filter values (predefined) or keyword was retrieved, fetch operation get executed
-const fetch$ = combineLatest(filter$, queryForFetch$)
+const fetch$ = combineLatest(filter$, queryForFetch$, (filter, query) => [filter, query])
     .pipe(
-        tap(console.log("filter$ queryForFetch$", ".......")),
-        flatMap(([filter, query]) => {
-          return loadImages(filter, query||'cats');
+        // map(res => res),
+        switchMap(([filter, query]) => {
+
+            console.log('-------query', query);
+            return loadImages(filter, query)
         })
   );
 
@@ -85,33 +95,15 @@ const initialFetch$ = loadImages('', 'dogs');
 
 //to be subscribed by container component
 const imageData$ = concat(initialFetch$, fetch$);
-// const images$ = imageData$.pipe(
-//         map(result=>result.data)
-//     );
-//     //to be subscribed by container component
-// const pagination$ = imageData$
-//     .pipe(
-//         map(result=>result.pagination)
-//     );
 
-// imageData$
-//     .pipe(
-//         tap(() => console.log('HTTP request executed')),
-//         map(res => Object.values(res['payload']))
-//     )
-//     .subscribe(
-//         images => {
-//             console.log("images updated...", images);
-//         }
-//     );
-// loadImages({"q": "dogs"}).subscribe(data => {
-//     images = data;
-// });
 function loadImages(f,q='') {
+    console.log("f,q",f,q);
     const query = q ? {q: q} : (f ? {q: f} : {});
+    console.log("called loadImages", query);
     return getGifs(query)
         .pipe(
             map(result => {
+                console.log("return images");
                 return result;
             })
         );
@@ -119,7 +111,7 @@ function loadImages(f,q='') {
 
 export default componentWithStream(
     combineLatest(
-      query$,
+      keyword$,
       filter$,
       imageData$,
       // pagination$,
@@ -131,8 +123,9 @@ export default componentWithStream(
       }),
     ),
     {
-      onSelectKeyword: keyword => query$.next(keyword),
+
       onChangeQuery: value => filter$.next(value),
+      onSelectKeyword: keyword => keyword$.next(keyword)
     }
 
 )(App);

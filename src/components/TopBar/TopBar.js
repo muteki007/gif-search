@@ -10,15 +10,25 @@ import faker from 'faker';
 class TopBar extends Component {
     constructor(props) {
         super(props);
-    }
+        this.state = {
+            keyword: ''
+        };
 
+    }
+    handleKeyword(keyword) {
+        this.props.onSelectKeyword(keyword);
+        this.setState({
+            keyword:keyword
+        });
+
+    }
     render() {
-        console.log(this.props);
+        console.log("topbar props:", this.props);
         return (<div className='topbar'>
                 <SVG src={fakelogo} className='logo'></SVG>
                 <div className='search'>
                     <SVG src={searchIcon} >search</SVG>
-                    <input type="text" onChange={(e)=>this.props.onSelectKeyword(e.target.value)}/>
+                    {typeof this.props.onSelectKeyword==='function' && <input type="text" value={this.state.keyword} onChange={(e)=>this.handleKeyword(e.target.value)}/>}
                 </div>
                 <div className='favorites'>
                     favorite
@@ -31,7 +41,7 @@ class TopBar extends Component {
 
 TopBar.propTypes = {
     keyword: PropTypes.string,
-    onSelectKeyword: PropTypes.function
+    onSelectKeyword: PropTypes.func
 };
 //             <SVG src={fakelogo} className='logo'></SVG>   <img src={fakelogo} alt='logo' />
 
